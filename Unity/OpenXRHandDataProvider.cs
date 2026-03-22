@@ -23,9 +23,16 @@ namespace XRHandSystem.Unity
                 _subsystem = subsystems[0];
         }
 
+        private void OnDisable()
+        {
+            // Clear tracking state when stopping so other components stop accessing joints
+            TrackingState = HandTrackingState.Untracked;
+            _subsystem = null;
+        }
+
         private void Update()
         {
-            if (_subsystem == null)
+            if (_subsystem == null || !_subsystem.running)
             {
                 TrackingState = HandTrackingState.Untracked;
                 return;
