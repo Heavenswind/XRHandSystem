@@ -6,10 +6,12 @@ namespace XRHandSystem.Unity
 {
     // Attach to a GameObject in your scene (one per hand).
     // Implements IHandDataProvider by reading from com.unity.xr.hands each frame.
-    // Also moves this GameObject to follow the wrist joint in world space.
     public class OpenXRHandDataProvider : MonoBehaviour, IHandDataProvider
     {
         [SerializeField] private Core.Handedness _handedness = Core.Handedness.Left;
+
+        [Tooltip("Reference to the XRCameraRig in the scene. Used to apply tracking origin offset to hand positions.")]
+        [SerializeField] private XRCameraRig _cameraRig;
 
         public Core.Handedness Handedness => _handedness;
         public HandTrackingState TrackingState { get; private set; }
@@ -24,6 +26,10 @@ namespace XRHandSystem.Unity
             SubsystemManager.GetSubsystems(subsystems);
             if (subsystems.Count > 0)
                 _subsystem = subsystems[0];
+
+            // Auto-find rig if not assigned
+            if (_cameraRig == null)
+                _cameraRig = FindFirstObjectByType<XRCameraRig>();
         }
 
         private void Update()
@@ -42,16 +48,11 @@ namespace XRHandSystem.Unity
                 ? HandTrackingState.Tracked
                 : HandTrackingState.Untracked;
 
-            // Move this GameObject to the wrist joint each frame so grabber and
-            // other components that read from transform are at the right position.
-            // The hand mesh is driven by XRHandMeshController directly from joints,
-            // not from this transform, so no double-transform occurs.
             if (IsTracked)
             {
                 var wristJoint = _hand.GetJoint(XRHandJointID.Wrist);
                 if (wristJoint.TryGetPose(out Pose wristPose))
-                    transform.position = wristPose.position;
-                    // Do NOT set rotation here — mesh controller owns the rotation per-bone
+                    transform.position = ApplyTrackingOriginOffset(wristPose.position);
             }
         }
 
@@ -62,7 +63,7 @@ namespace XRHandSystem.Unity
 
             var xrJoint = (XRHandJointID)((int)joint + 1); // XRHandJointID is 1-based
             if (_hand.GetJoint(xrJoint).TryGetPose(out Pose pose))
-                return pose;
+                return new Pose(ApplyTrackingOriginOffset(pose.position), pose.rotation);
 
             return Pose.identity;
         }
@@ -77,6 +78,15 @@ namespace XRHandSystem.Unity
             Quaternion localRot   = invWristRot * world.rotation;
 
             return new Pose(localPos, localRot);
+        }
+
+        // Applies the TrackingSpace offset from XRCameraRig so hands align with the camera
+        private Vector3 ApplyTrackingOriginOffset(Vector3 worldPos)
+        {
+            if (_cameraRig == null || _cameraRig.TrackingSpace == null)
+                return worldPos;
+
+            return worldPos + _cameraRig.TrackingSpace.localPosition;
         }
     }
 }

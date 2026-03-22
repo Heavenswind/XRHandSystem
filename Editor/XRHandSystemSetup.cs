@@ -196,6 +196,7 @@ namespace XRHandSystem.Editor
             var provider   = GetOrAdd<OpenXRHandDataProvider>(go);
             var providerSo = new SerializedObject(provider);
             providerSo.FindProperty("_handedness").enumValueIndex = (int)handedness;
+            providerSo.FindProperty("_cameraRig").objectReferenceValue = rigComponent;
             providerSo.ApplyModifiedProperties();
 
             GetOrAdd<HandGrabber>(go);
