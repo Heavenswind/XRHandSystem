@@ -4,7 +4,8 @@
     "references": [
         "XRHandSystem.Core",
         "Unity.XR.Hands",
-        "Unity.XR.OpenXR"
+        "Unity.XR.OpenXR",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
