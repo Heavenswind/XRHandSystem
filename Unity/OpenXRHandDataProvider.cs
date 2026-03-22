@@ -39,12 +39,7 @@ namespace XRHandSystem.Unity
                 ? HandTrackingState.Tracked
                 : HandTrackingState.Untracked;
 
-            if (IsTracked)
-            {
-                var wristJoint = _hand.GetJoint(XRHandJointID.Wrist);
-                if (wristJoint.TryGetPose(out Pose wristPose))
-                    transform.position = wristPose.position;
-            }
+            // XRHandSkeletonDriver handles moving the hand mesh bones — don't fight it
         }
 
         public Pose GetJointPose(HandJoint joint)

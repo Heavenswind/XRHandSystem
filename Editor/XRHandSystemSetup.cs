@@ -115,8 +115,8 @@ namespace XRHandSystem.Editor
 
             // Hands must be at scene root — OpenXR joint poses are already in world space
             // Parenting under TrackingSpace would double-transform them
-            SetupHand("XRHand_Left",  Handedness.Left,  inputAsset, null, leftHandVisualizer);
-            SetupHand("XRHand_Right", Handedness.Right, inputAsset, null, rightHandVisualizer);
+            SetupHand("XRHand_Left",  Handedness.Left,  inputAsset, trackingSpace.transform, leftHandVisualizer);
+            SetupHand("XRHand_Right", Handedness.Right, inputAsset, trackingSpace.transform, rightHandVisualizer);
 
             Undo.CollapseUndoOperations(undoGroup);
             Selection.activeGameObject = rig;
