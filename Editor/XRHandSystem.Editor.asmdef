@@ -3,7 +3,10 @@
     "rootNamespace": "XRHandSystem.Editor",
     "references": [
         "XRHandSystem.Core",
-        "XRHandSystem.Unity"
+        "XRHandSystem.Unity",
+        "Unity.XR.Hands",
+        "Unity.InputSystem",
+        "Unity.InputSystem.Editor"
     ],
     "includePlatforms": ["Editor"],
     "excludePlatforms": [],
