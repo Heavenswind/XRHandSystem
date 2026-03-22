@@ -1,11 +1,10 @@
-using System.Collections.Generic;
 using UnityEngine;
 using XRHandSystem.Core;
 
 namespace XRHandSystem.Unity
 {
     // Attach alongside OpenXRHandDataProvider on each hand GameObject.
-    // Handles grab detection, joint attachment, and throw velocity.
+    // Handles grab detection, joint attachment, throw velocity, and pose projection.
     [RequireComponent(typeof(OpenXRHandDataProvider))]
     public class HandGrabber : MonoBehaviour
     {
@@ -19,30 +18,45 @@ namespace XRHandSystem.Unity
         [SerializeField] private float _jointSpring = 3000f;
         [SerializeField] private float _jointDamper = 100f;
 
-        // How many frames to average for throw velocity
+        [Header("Pose Projection")]
+        [Tooltip("Distance at which pose blending starts.")]
+        [SerializeField] private float _blendStartDistance = 0.15f;
+
+        [Tooltip("Distance at which pose is fully snapped to grab pose.")]
+        [SerializeField] private float _blendEndDistance = 0.01f;
+
+        [Tooltip("Optional — drives blend using pinch value as well as distance.")]
+        [SerializeField] private bool _usePinchBlend = true;
+
+        // Set this from HandInputBinding so the blender can factor in pinch value
+        public float CurrentPinchValue { get; set; }
+
         private const int VelocityFrames = 5;
 
         private OpenXRHandDataProvider _handProvider;
-        private IXRGrabbable _heldObject;
-        private ConfigurableJoint _joint;
+        private GhostHandVisual        _ghostHand;
+        private IXRGrabbable           _heldObject;
+        private IXRGrabbable           _nearestCandidate;
+        private ConfigurableJoint      _joint;
 
         private Vector3[] _velocityBuffer;
-        private int _velocityIndex;
+        private int       _velocityIndex;
 
-        // Grab/release are driven externally — call these from your input binding
-        // (pinch gesture, controller button, etc.)
         public bool IsHolding => _heldObject != null;
 
         private void Awake()
         {
-            _handProvider    = GetComponent<OpenXRHandDataProvider>();
-            _velocityBuffer  = new Vector3[VelocityFrames];
+            _handProvider   = GetComponent<OpenXRHandDataProvider>();
+            _ghostHand      = GetComponent<GhostHandVisual>();
+            _velocityBuffer = new Vector3[VelocityFrames];
         }
 
         private void Update()
         {
             if (!_handProvider.IsTracked) return;
+
             TrackVelocity();
+            UpdatePoseProjection();
         }
 
         public void TryGrab()
@@ -61,21 +75,58 @@ namespace XRHandSystem.Unity
         public void Release()
         {
             if (_heldObject == null) return;
-
             Detach();
         }
+
+        // ── Pose Projection ───────────────────────────────────────────────────
+
+        private void UpdatePoseProjection()
+        {
+            if (_ghostHand == null) return;
+
+            // While holding, stay fully in grab pose
+            if (_heldObject != null)
+            {
+                if (_heldObject.GrabPose != null)
+                    _ghostHand.SetBlendedCurls(_heldObject.GrabPose.fingerCurls);
+                return;
+            }
+
+            // Find nearest grabbable within blend range
+            Pose palmPose = _handProvider.GetJointPose(HandJoint.Palm);
+            _nearestCandidate = FindNearestInRange(palmPose.position, _blendStartDistance);
+
+            if (_nearestCandidate == null || _nearestCandidate.GrabPose == null)
+            {
+                // No nearby grabbable — show live hand pose
+                float[] liveCurls = FingerCurlCalculator.Calculate(_handProvider);
+                _ghostHand.SetBlendedCurls(liveCurls);
+                return;
+            }
+
+            // Compute blend
+            float distance = Vector3.Distance(palmPose.position, _nearestCandidate.Transform.position);
+            float blend    = _usePinchBlend
+                ? HandPoseBlender.BlendFromDistanceAndPinch(distance, CurrentPinchValue, _blendStartDistance, _blendEndDistance)
+                : HandPoseBlender.BlendFromDistance(distance, _blendStartDistance, _blendEndDistance);
+
+            float[] live    = FingerCurlCalculator.Calculate(_handProvider);
+            float[] blended = HandPoseBlender.Blend(live, _nearestCandidate.GrabPose.fingerCurls, blend);
+
+            _ghostHand.SetBlendedCurls(blended);
+        }
+
+        // ── Attach / Detach ───────────────────────────────────────────────────
 
         private void Attach(IXRGrabbable grabbable)
         {
             _heldObject = grabbable;
 
-            // Create a ConfigurableJoint on the grabbed rigidbody anchored to this hand
-            var rb = grabbable.Transform.GetComponent<Rigidbody>();
             _joint = grabbable.Transform.gameObject.AddComponent<ConfigurableJoint>();
 
-            _joint.xMotion = ConfigurableJointMotion.Free;
-            _joint.yMotion = ConfigurableJointMotion.Free;
-            _joint.zMotion = ConfigurableJointMotion.Free;
+            _joint.xMotion        = ConfigurableJointMotion.Free;
+            _joint.yMotion        = ConfigurableJointMotion.Free;
+            _joint.zMotion        = ConfigurableJointMotion.Free;
             _joint.angularXMotion = ConfigurableJointMotion.Free;
             _joint.angularYMotion = ConfigurableJointMotion.Free;
             _joint.angularZMotion = ConfigurableJointMotion.Free;
@@ -88,11 +139,9 @@ namespace XRHandSystem.Unity
             };
 
             _joint.xDrive = _joint.yDrive = _joint.zDrive = drive;
-            _joint.slerpDrive = drive;
+            _joint.slerpDrive        = drive;
             _joint.rotationDriveMode = RotationDriveMode.Slerp;
-
-            _joint.targetPosition = Vector3.zero;
-            _joint.connectedAnchor = _handProvider.GetJointPose(HandJoint.Palm).position;
+            _joint.connectedAnchor   = _handProvider.GetJointPose(HandJoint.Palm).position;
 
             _heldObject.OnGrabStart(_handProvider);
         }
@@ -102,7 +151,6 @@ namespace XRHandSystem.Unity
             if (_joint != null)
                 Destroy(_joint);
 
-            // Apply throw velocity
             var rb = _heldObject.Transform.GetComponent<Rigidbody>();
             if (rb != null)
                 rb.linearVelocity = AverageVelocity();
@@ -115,11 +163,12 @@ namespace XRHandSystem.Unity
         {
             if (_joint == null) return;
 
-            // Keep the joint target tracking the palm pose each frame
             Pose palm = _handProvider.GetJointPose(HandJoint.Palm);
             _joint.connectedAnchor = palm.position;
             _joint.targetRotation  = Quaternion.Inverse(palm.rotation);
         }
+
+        // ── Velocity Tracking ─────────────────────────────────────────────────
 
         private void TrackVelocity()
         {
@@ -140,9 +189,11 @@ namespace XRHandSystem.Unity
             return (newest - oldest) / dt;
         }
 
+        // ── Nearest Grabbable ─────────────────────────────────────────────────
+
         private IXRGrabbable FindNearest(Collider[] hits, Vector3 origin)
         {
-            IXRGrabbable best   = null;
+            IXRGrabbable best     = null;
             float        bestDist = float.MaxValue;
 
             foreach (var col in hits)
@@ -159,6 +210,12 @@ namespace XRHandSystem.Unity
             }
 
             return best;
+        }
+
+        private IXRGrabbable FindNearestInRange(Vector3 origin, float range)
+        {
+            Collider[] hits = Physics.OverlapSphere(origin, range, _grabMask);
+            return FindNearest(hits, origin);
         }
     }
 }
