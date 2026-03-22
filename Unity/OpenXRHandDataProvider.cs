@@ -42,14 +42,16 @@ namespace XRHandSystem.Unity
                 ? HandTrackingState.Tracked
                 : HandTrackingState.Untracked;
 
-            // Move this GameObject to the wrist so children (mesh, grabber) follow the hand
+            // Move this GameObject to the wrist joint each frame so grabber and
+            // other components that read from transform are at the right position.
+            // The hand mesh is driven by XRHandMeshController directly from joints,
+            // not from this transform, so no double-transform occurs.
             if (IsTracked)
             {
                 var wristJoint = _hand.GetJoint(XRHandJointID.Wrist);
                 if (wristJoint.TryGetPose(out Pose wristPose))
-                {
-                    transform.SetPositionAndRotation(wristPose.position, wristPose.rotation);
-                }
+                    transform.position = wristPose.position;
+                    // Do NOT set rotation here — mesh controller owns the rotation per-bone
             }
         }
 
