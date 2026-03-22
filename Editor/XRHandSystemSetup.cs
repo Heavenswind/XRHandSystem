@@ -4,6 +4,7 @@ using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.UI;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.XR;
 using XRHandSystem.Unity;
 using XRHandSystem.Core;
 
