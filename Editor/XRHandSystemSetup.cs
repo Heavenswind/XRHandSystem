@@ -113,8 +113,10 @@ namespace XRHandSystem.Editor
             var leftHandVisualizer  = FindHandVisualizerPrefab("Left Hand Tracking");
             var rightHandVisualizer = FindHandVisualizerPrefab("Right Hand Tracking");
 
-            SetupHand("XRHand_Left",  Handedness.Left,  inputAsset, trackingSpace.transform, leftHandVisualizer);
-            SetupHand("XRHand_Right", Handedness.Right, inputAsset, trackingSpace.transform, rightHandVisualizer);
+            // Hands must be at scene root — OpenXR joint poses are already in world space
+            // Parenting under TrackingSpace would double-transform them
+            SetupHand("XRHand_Left",  Handedness.Left,  inputAsset, rig.transform, leftHandVisualizer);
+            SetupHand("XRHand_Right", Handedness.Right, inputAsset, rig.transform, rightHandVisualizer);
 
             Undo.CollapseUndoOperations(undoGroup);
             Selection.activeGameObject = rig;
