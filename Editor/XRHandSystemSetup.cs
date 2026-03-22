@@ -160,20 +160,24 @@ namespace XRHandSystem.Editor
 
         private static void AddHandActions(InputActionMap map, string side)
         {
-            var pinch = map.AddAction("Pinch", InputActionType.Value, expectedControlType: "Axis");
+            var pinch = map.AddAction("Pinch", InputActionType.Value);
+            pinch.expectedControlType = "Axis";
             pinch.AddBinding($"<XRHandInteraction>{{XR{side}Hand}}/selectValue");
             pinch.AddBinding($"<HandInteraction>{{XR{side}Hand}}/selectValue");
             pinch.AddBinding($"<XRController>{{XR{side}Hand}}/grip");
 
-            var grip = map.AddAction("Grip", InputActionType.Value, expectedControlType: "Axis");
+            var grip = map.AddAction("Grip", InputActionType.Value);
+            grip.expectedControlType = "Axis";
             grip.AddBinding($"<XRHandInteraction>{{XR{side}Hand}}/squeezeValue");
             grip.AddBinding($"<XRController>{{XR{side}Hand}}/grip");
 
-            var aimPose = map.AddAction("AimPose", InputActionType.Value, expectedControlType: "Pose");
+            var aimPose = map.AddAction("AimPose", InputActionType.Value);
+            aimPose.expectedControlType = "Pose";
             aimPose.AddBinding($"<XRHandInteraction>{{XR{side}Hand}}/aimPose");
             aimPose.AddBinding($"<XRController>{{XR{side}Hand}}/devicePose");
 
-            var gripPose = map.AddAction("GripPose", InputActionType.Value, expectedControlType: "Pose");
+            var gripPose = map.AddAction("GripPose", InputActionType.Value);
+            gripPose.expectedControlType = "Pose";
             gripPose.AddBinding($"<XRHandInteraction>{{XR{side}Hand}}/gripPose");
             gripPose.AddBinding($"<XRController>{{XR{side}Hand}}/devicePose");
         }
