@@ -4,7 +4,6 @@ using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.UI;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.XR;
 using XRHandSystem.Unity;
 using XRHandSystem.Core;
 
@@ -100,12 +99,9 @@ namespace XRHandSystem.Editor
             cam.tag      = "MainCamera";
             cameraGo.tag = "MainCamera";
 
-            var tpd   = GetOrAdd<TrackedPoseDriver>(cameraGo);
-            var tpdSo = new SerializedObject(tpd);
-            tpdSo.FindProperty("m_PositionAction").FindPropertyRelative("m_Name").stringValue      = "Position";
-            tpdSo.FindProperty("m_RotationAction").FindPropertyRelative("m_Name").stringValue      = "Rotation";
-            tpdSo.FindProperty("m_TrackingStateAction").FindPropertyRelative("m_Name").stringValue = "TrackingState";
-            tpdSo.ApplyModifiedProperties();
+            // Add TrackedPoseDriver — configure HMD tracking bindings manually in Inspector
+            // if defaults don't apply (bindings vary by Input System version)
+            GetOrAdd<TrackedPoseDriver>(cameraGo);
 
             // Hands
             var leftHandVisualizer  = FindHandVisualizerPrefab("LeftHand");
