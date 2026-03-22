@@ -1,0 +1,12 @@
+{
+  "name": "com.xrhandsystem.core",
+  "version": "0.1.0",
+  "displayName": "XR Hand System",
+  "description": "Dependency-free OpenXR hand tracking system. Pose matching, finger curl calculation, and grab interfaces for Unity and Unreal portability.",
+  "unity": "2022.3",
+  "dependencies": {
+    "com.unity.xr.openxr": "1.9.1",
+    "com.unity.xr.hands": "1.4.0"
+  },
+  "keywords": ["xr", "vr", "openxr", "hand tracking", "pose matching"]
+}
