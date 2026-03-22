@@ -100,9 +100,14 @@ namespace XRHandSystem.Editor
             cam.tag      = "MainCamera";
             cameraGo.tag = "MainCamera";
 
-            // Add TrackedPoseDriver — configure HMD tracking bindings manually in Inspector
-            // if defaults don't apply (bindings vary by Input System version)
-            GetOrAdd<TrackedPoseDriver>(cameraGo);
+            var tpd = GetOrAdd<TrackedPoseDriver>(cameraGo);
+            tpd.positionInput = new InputActionProperty(
+                new InputAction("Position", binding: "<XRHMD>/centerEyePosition", expectedControlType: "Vector3"));
+            tpd.rotationInput = new InputActionProperty(
+                new InputAction("Rotation", binding: "<XRHMD>/centerEyeRotation", expectedControlType: "Quaternion"));
+            tpd.trackingStateInput = new InputActionProperty(
+                new InputAction("Tracking State", binding: "<XRHMD>/trackingState", expectedControlType: "Integer"));
+            EditorUtility.SetDirty(cameraGo);
 
             // Hands
             var leftHandVisualizer  = FindHandVisualizerPrefab("LeftHand");
