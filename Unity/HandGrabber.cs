@@ -34,7 +34,7 @@ namespace XRHandSystem.Unity
         private const int VelocityFrames = 5;
 
         private OpenXRHandDataProvider _handProvider;
-        private GhostHandVisual        _ghostHand;
+        private HandVisual             _ghostHand;
         private IXRGrabbable           _heldObject;
         private IXRGrabbable           _nearestCandidate;
         private ConfigurableJoint      _joint;
@@ -47,7 +47,7 @@ namespace XRHandSystem.Unity
         private void Awake()
         {
             _handProvider   = GetComponent<OpenXRHandDataProvider>();
-            _ghostHand      = GetComponent<GhostHandVisual>();
+            _ghostHand      = GetComponent<HandVisual>();
             _velocityBuffer = new Vector3[VelocityFrames];
         }
 

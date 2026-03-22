@@ -10,7 +10,7 @@ namespace XRHandSystem.Unity
     {
         [SerializeField] private OpenXRHandDataProvider _handProvider;
         [SerializeField] private HandPoseData           _targetPose;
-        [SerializeField] private GhostHandVisual        _ghostHand;
+        [SerializeField] private HandVisual              _ghostHand;
 
         [Range(0f, 1f)]
         [SerializeField] private float _matchThreshold = 0.85f;

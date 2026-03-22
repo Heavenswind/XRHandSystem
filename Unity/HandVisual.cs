@@ -3,10 +3,9 @@ using XRHandSystem.Core;
 
 namespace XRHandSystem.Unity
 {
-    // Renders a semi-transparent "ghost" hand showing the target pose.
-    // Also drives the live hand mesh via pose projection — blending between
-    // the tracked hand and a grab pose as the hand approaches a grabbable.
-    public class GhostHandVisual : MonoBehaviour
+    // Drives the hand mesh — shows live tracked pose, blends into a grab pose
+    // as the hand approaches a grabbable, and fades as a pose match completes.
+    public class HandVisual : MonoBehaviour
     {
         [SerializeField] private HandPoseData _targetPose;
         [SerializeField] private Transform _wrist;

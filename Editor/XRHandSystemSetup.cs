@@ -130,7 +130,7 @@ namespace XRHandSystem.Editor
                 "  • XRHandInputActions.inputactions\n\n" +
                 (hasMesh
                     ? "Hand Visualizer meshes wired up automatically.\n\n"
-                    : "Hand Visualizer prefabs not found — assign mesh renderers and bone transforms to GhostHandVisual manually.\n\n") +
+                    : "Hand Visualizer prefabs not found — assign mesh renderers and bone transforms to HandVisual manually.\n\n") +
                 "Remaining steps:\n" +
                 "  1. Create pose assets via XRHandSystem > Pose Editor\n" +
                 "  2. Assign poses to HandPoseMatcherComponent",
@@ -191,10 +191,10 @@ namespace XRHandSystem.Editor
 
             GetOrAdd<HandGrabber>(go);
 
-            var ghost   = GetOrAdd<GhostHandVisual>(go);
+            var ghost   = GetOrAdd<HandVisual>(go);
 
             // If we have the Hand Visualizer prefab, instantiate it as a child
-            // and auto-wire the renderers into GhostHandVisual
+            // and auto-wire the renderers into HandVisual
             if (visualizerPrefab != null)
             {
                 var meshChild = parent.Find(name + "_Mesh")?.gameObject
