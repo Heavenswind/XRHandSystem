@@ -6,6 +6,7 @@ namespace XRHandSystem.Unity
 {
     // Attach to a GameObject in your scene (one per hand).
     // Implements IHandDataProvider by reading from com.unity.xr.hands each frame.
+    // Also moves this GameObject to follow the wrist joint in world space.
     public class OpenXRHandDataProvider : MonoBehaviour, IHandDataProvider
     {
         [SerializeField] private Core.Handedness _handedness = Core.Handedness.Left;
@@ -40,6 +41,16 @@ namespace XRHandSystem.Unity
             TrackingState = _hand.isTracked
                 ? HandTrackingState.Tracked
                 : HandTrackingState.Untracked;
+
+            // Move this GameObject to the wrist so children (mesh, grabber) follow the hand
+            if (IsTracked)
+            {
+                var wristJoint = _hand.GetJoint(XRHandJointID.Wrist);
+                if (wristJoint.TryGetPose(out Pose wristPose))
+                {
+                    transform.SetPositionAndRotation(wristPose.position, wristPose.rotation);
+                }
+            }
         }
 
         public Pose GetJointPose(HandJoint joint)
