@@ -115,8 +115,8 @@ namespace XRHandSystem.Editor
 
             // Hands must be at scene root — OpenXR joint poses are already in world space
             // Parenting under TrackingSpace would double-transform them
-            SetupHand("XRHand_Left",  Handedness.Left,  inputAsset, rig.transform, leftHandVisualizer, rigComponent);
-            SetupHand("XRHand_Right", Handedness.Right, inputAsset, rig.transform, rightHandVisualizer, rigComponent);
+            SetupHand("XRHand_Left",  Handedness.Left,  inputAsset, rig.transform, leftHandVisualizer);
+            SetupHand("XRHand_Right", Handedness.Right, inputAsset, rig.transform, rightHandVisualizer);
 
             Undo.CollapseUndoOperations(undoGroup);
             Selection.activeGameObject = rig;
@@ -189,14 +189,14 @@ namespace XRHandSystem.Editor
 
         // ── Hand Setup ────────────────────────────────────────────────────────
 
-        private static void SetupHand(string name, Handedness handedness, InputActionAsset inputAsset, Transform parent, GameObject visualizerPrefab, XRCameraRig rig = null)
+        private static void SetupHand(string name, Handedness handedness, InputActionAsset inputAsset, Transform parent, GameObject visualizerPrefab)
         {
             var go = GetOrCreateGameObject(name, parent);
 
             var provider   = GetOrAdd<OpenXRHandDataProvider>(go);
             var providerSo = new SerializedObject(provider);
             providerSo.FindProperty("_handedness").enumValueIndex = (int)handedness;
-            providerSo.FindProperty("_cameraRig").objectReferenceValue = rig;
+
             providerSo.ApplyModifiedProperties();
 
             GetOrAdd<HandGrabber>(go);

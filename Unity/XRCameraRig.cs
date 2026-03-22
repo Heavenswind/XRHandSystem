@@ -1,16 +1,9 @@
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.XR;
 
 namespace XRHandSystem.Unity
 {
-    // Minimal camera rig. No XRI dependency — uses TrackedPoseDriver from
-    // com.unity.inputsystem (already required by the package).
-    //
-    // Hierarchy this component expects:
-    //   XRCameraRig (this component)
-    //     └── TrackingSpace
-    //           ├── MainCamera  (Camera + TrackedPoseDriver)
-    //           ├── XRHand_Left
-    //           └── XRHand_Right
     public class XRCameraRig : MonoBehaviour
     {
         public enum TrackingOrigin
@@ -20,26 +13,34 @@ namespace XRHandSystem.Unity
         }
 
         [SerializeField] private TrackingOrigin _trackingOrigin = TrackingOrigin.Floor;
-        [SerializeField] private float          _deviceModeEyeHeight = 1.6f;
         [SerializeField] private Transform      _trackingSpace;
         [SerializeField] private Camera         _camera;
 
-        private void Awake() => ApplyTrackingOrigin();
+        public Camera    Camera        => _camera;
+        public Transform TrackingSpace => _trackingSpace;
 
-#if UNITY_EDITOR
-        private void OnValidate() => ApplyTrackingOrigin();
-#endif
+        private void Start()
+        {
+            ApplyTrackingOrigin();
+        }
 
         private void ApplyTrackingOrigin()
         {
-            if (_trackingSpace == null) return;
+            // Tell the XR subsystem which origin mode to use — this is the correct
+            // way to set floor vs device tracking. No manual transform offset needed.
+            var subsystems = new List<XRInputSubsystem>();
+            SubsystemManager.GetSubsystems(subsystems);
 
-            _trackingSpace.localPosition = _trackingOrigin == TrackingOrigin.Floor
-                ? Vector3.zero
-                : new Vector3(0f, _deviceModeEyeHeight, 0f);
+            var mode = _trackingOrigin == TrackingOrigin.Floor
+                ? TrackingOriginModeFlags.Floor
+                : TrackingOriginModeFlags.Device;
+
+            foreach (var subsystem in subsystems)
+                subsystem.TrySetTrackingOriginMode(mode);
+
+            // Keep TrackingSpace at zero — no manual offset
+            if (_trackingSpace != null)
+                _trackingSpace.localPosition = Vector3.zero;
         }
-
-        public Camera    Camera         => _camera;
-        public Transform TrackingSpace  => _trackingSpace;
     }
 }
