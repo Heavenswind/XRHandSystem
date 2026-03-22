@@ -14,7 +14,7 @@ namespace XRHandSystem.Editor
     {
         private const string AssetPath          = "Assets/XRHandSystem/XRHandInputActions.inputactions";
         private const string XRHandsPackageId   = "com.unity.xr.hands";
-        private const string HandVisualizerSample = "Hand Visualizer";
+        private const string HandVisualizerSample = "HandVisualizer";
         private const string SampleImportPath   = "Assets/Samples/XR Hands";
 
         [MenuItem("XRHandSystem/Setup Scene")]
@@ -110,8 +110,8 @@ namespace XRHandSystem.Editor
             EditorUtility.SetDirty(cameraGo);
 
             // Hands
-            var leftHandVisualizer  = FindHandVisualizerPrefab("LeftHand");
-            var rightHandVisualizer = FindHandVisualizerPrefab("RightHand");
+            var leftHandVisualizer  = FindHandVisualizerPrefab("Left Hand Tracking");
+            var rightHandVisualizer = FindHandVisualizerPrefab("Right Hand Tracking");
 
             SetupHand("XRHand_Left",  Handedness.Left,  inputAsset, trackingSpace.transform, leftHandVisualizer);
             SetupHand("XRHand_Right", Handedness.Right, inputAsset, trackingSpace.transform, rightHandVisualizer);
@@ -235,9 +235,9 @@ namespace XRHandSystem.Editor
         // ── Helpers ───────────────────────────────────────────────────────────
 
         // Searches the imported Hand Visualizer sample for a prefab matching the hand side
-        private static GameObject FindHandVisualizerPrefab(string side)
+        private static GameObject FindHandVisualizerPrefab(string prefabName)
         {
-            var guids = AssetDatabase.FindAssets($"t:Prefab {side}", new[] { SampleImportPath });
+            var guids = AssetDatabase.FindAssets($"t:Prefab {prefabName}", new[] { SampleImportPath });
             if (guids.Length == 0) return null;
             return AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guids[0]));
         }
