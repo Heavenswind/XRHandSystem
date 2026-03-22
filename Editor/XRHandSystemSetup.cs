@@ -150,9 +150,10 @@ namespace XRHandSystem.Editor
             AddHandActions(asset.AddActionMap("LeftHand"),  "Left");
             AddHandActions(asset.AddActionMap("RightHand"), "Right");
 
+            // .inputactions files must be written as JSON, not via CreateAsset
             System.IO.Directory.CreateDirectory("Assets/XRHandSystem");
-            AssetDatabase.CreateAsset(asset, AssetPath);
-            AssetDatabase.SaveAssets();
+            System.IO.File.WriteAllText(AssetPath, asset.ToJson());
+            AssetDatabase.ImportAsset(AssetPath);
             AssetDatabase.Refresh();
 
             return AssetDatabase.LoadAssetAtPath<InputActionAsset>(AssetPath);
