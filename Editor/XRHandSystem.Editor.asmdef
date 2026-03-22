@@ -5,8 +5,7 @@
         "XRHandSystem.Core",
         "XRHandSystem.Unity",
         "Unity.XR.Hands",
-        "Unity.InputSystem",
-        "Unity.InputSystem.Editor"
+        "Unity.InputSystem"
     ],
     "includePlatforms": ["Editor"],
     "excludePlatforms": [],

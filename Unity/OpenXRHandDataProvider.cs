@@ -8,9 +8,9 @@ namespace XRHandSystem.Unity
     // Implements IHandDataProvider by reading from com.unity.xr.hands each frame.
     public class OpenXRHandDataProvider : MonoBehaviour, IHandDataProvider
     {
-        [SerializeField] private Handedness _handedness = Handedness.Left;
+        [SerializeField] private Core.Handedness _handedness = Core.Handedness.Left;
 
-        public Handedness Handedness => _handedness;
+        public Core.Handedness Handedness => _handedness;
         public HandTrackingState TrackingState { get; private set; }
         public bool IsTracked => TrackingState == HandTrackingState.Tracked;
 
@@ -33,7 +33,7 @@ namespace XRHandSystem.Unity
                 return;
             }
 
-            _hand = (_handedness == Handedness.Left)
+            _hand = (_handedness == Core.Handedness.Left)
                 ? _subsystem.leftHand
                 : _subsystem.rightHand;
 
@@ -59,10 +59,9 @@ namespace XRHandSystem.Unity
             Pose world = GetJointPose(joint);
             Pose wrist = GetJointPose(HandJoint.Wrist);
 
-            // Express joint pose relative to wrist
             Quaternion invWristRot = Quaternion.Inverse(wrist.rotation);
-            Vector3 localPos = invWristRot * (world.position - wrist.position);
-            Quaternion localRot = invWristRot * world.rotation;
+            Vector3    localPos   = invWristRot * (world.position - wrist.position);
+            Quaternion localRot   = invWristRot * world.rotation;
 
             return new Pose(localPos, localRot);
         }

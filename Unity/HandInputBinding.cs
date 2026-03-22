@@ -27,7 +27,6 @@ namespace XRHandSystem.Unity
             float pinch      = _pinchAction.action.ReadValue<float>();
             bool  isGrabbing = pinch >= _grabThreshold;
 
-            // Pass raw pinch value to grabber so pose projection can use it
             _grabber.CurrentPinchValue = pinch;
 
             if (isGrabbing && !_wasGrabbing)
